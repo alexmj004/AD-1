@@ -1,25 +1,18 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
-// PASOS A SEGUIR:
-// -> CREAMOS UNA LISTA DONDE ALMACENAREMOS OBJETOS TIPO COCHE.
-// -> AÑADIMOS UNA OPCIÓN PARA TENER ESCRITO EN EL FICHERO OBJETOS TIPO COCHE.
-// -> COMPROBAMOS SÍ EL FICHERO ESTÁ O NO VACÍO. SÍ NO LO ESTÁ SE AÑADEN LOS OBJETOS QUE CONTENGA A LA LISTA.
-// -> CREAMOS EL MENÚ CON LAS LLAMADAS A LOS MÉTODOS CORRESPONDIENTES.
-// -> ESPECIFICAMOS LA FUNCIONALIDAD DE CADA UNO DE LOS MÉTODOS DEL MENÚ.
-// -> AL SALIR DEL MENÚ, LOS COCHES DE LA LISTA SON ESCRITOS EN EL FICHERO.
 
 public class Concesionario {
-    static ArrayList<Coche> listCoches = new ArrayList<>();;
-    static Scanner scanner = new Scanner(System.in);
+    // -> CREAMOS UNA LISTA DONDE ALMACENAREMOS OBJETOS TIPO COCHE.
+    private static ArrayList<Coche> listCoches = new ArrayList<>();;
+
+    private static Scanner scanner = new Scanner(System.in);
 
 
     public static void main(String[] args) {
-        objetosAlIncio(new Coche(1,"5678YYY","CHEVROLET","CRUCE","GRIS"));
-
-
-
+        // -> COMPROBAMOS SÍ EL FICHERO ESTÁ O NO VACÍO. SÍ NO LO ESTÁ SE AÑADEN LOS OBJETOS QUE CONTENGA A LA LISTA.
         File file = new File("src/main/java/coches.dat");
         if(!file.exists()){
             System.out.println("Lista vacía");
@@ -44,13 +37,14 @@ public class Concesionario {
 
 
         int opcion;
+        // -> CREAMOS EL MENÚ CON LAS LLAMADAS A LOS MÉTODOS CORRESPONDIENTES.
         do{
 
             System.out.println("1. Añadir nuevo coche");
             System.out.println("2. Borrar coche por id");
             System.out.println("3. Consulta coche por id");
             System.out.println("4. Listado de coches");
-            System.out.println("5. Exportar coches a fichero txt");
+            System.out.println("5. Exportar coches a fichero .csv");
             System.out.println("6. Terminar el programa");
 
             System.out.println("Elige una de las opiciones:");
@@ -61,31 +55,29 @@ public class Concesionario {
                 case 1:
 
                     // Solictamos al usuario que inserte los datos del coche a insertar.
+
                     System.out.println("ID:");
                     int id = scanner.nextInt();
+//                    Sí hay una matrícula con el mismo valor el programa para.
+                    if(comprobarId(id)){
+                        break;
+                    }
                     scanner.nextLine();
+
                     System.out.println("MATRÍCULA:");
-                    String matriculate = scanner.nextLine();
+                    String matricula = scanner.nextLine();
+//                  Sí hay una matrícula con el mismo valor el programa para.
+                    if(comprobarMatricula(matricula)){
+                        break;
+                    }
                     System.out.println("MARCA:");
                     String marca = scanner.nextLine();
                     System.out.println("MODELO:");
-                    String model = scanner.nextLine();
+                    String modelo = scanner.nextLine();
                     System.out.println("COLOR:");
                     String color = scanner.nextLine();
 
-                    // No se permite duplicar el id ni la matricula.
-                    for(Coche car : listCoches){
-                        if(!(car.getId()==id)){
-                            if(!(car.getMatricula().equals(matriculate))){
-                                insertar(new Coche(id,matriculate,marca,model,color));
-                            }else{
-                                System.out.println("NO PUEDE HABER DOS COCHES CON MISMA MATRÍCULA.");
-                            }
-
-                        }else{
-                            System.out.println("NO PUEDE HABER DOS COCHES CON MISMO ID.");
-                        }
-                    }
+                    insertar(new Coche(id,matricula,marca,modelo,color));
 
                     break;
                 case 2:
@@ -112,7 +104,7 @@ public class Concesionario {
             }
         }while(opcion!=6);
 
-
+        // -> AL SALIR DEL MENÚ, LOS COCHES DE LA LISTA SON ESCRITOS EN EL FICHERO.
         escrituraCoches("src/main/java/coches.dat");
         System.out.println("CONSULTA EL ARCHIVO coches.dat");
 
@@ -120,7 +112,7 @@ public class Concesionario {
 
 
 
-    // Métodos del menú:
+    // // -> ESPECIFICAMOS LA FUNCIONALIDAD DE CADA UNO DE LOS MÉTODOS DEL MENÚ.
     public static void insertar(Coche coche){
 
         listCoches.add(coche);
@@ -132,8 +124,11 @@ public class Concesionario {
             if(car.getId() == id){
                 cocheEliminar = car;
             }
+
+            listCoches.remove(cocheEliminar);
         }
-        listCoches.remove(cocheEliminar);
+
+
 
 
 
@@ -154,20 +149,19 @@ public class Concesionario {
     }
     public static void exportar(){
         File file = new File("src/main/java/coches.csv");
-        ObjectOutputStream objectOutputStream = null;
+        PrintWriter printWriter = null;
         try {
-            objectOutputStream = new ObjectOutputStream(new FileOutputStream(file));
-            objectOutputStream.writeObject(listCoches.toString().split(";"));
+            printWriter = new PrintWriter(new FileOutputStream(file));
+            for(Coche car:listCoches){
+                printWriter.println(Arrays.toString(car.toString().split(";")));
+            }
+
 
             System.out.println("EXPORTADO CON ÉXITO.");
         } catch (IOException e) {
             System.out.println(e.getMessage());
         } finally {
-            try {
-                objectOutputStream.close();
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
+            printWriter.close();
         }
 
     }
@@ -192,27 +186,34 @@ public class Concesionario {
         }
     }
 
+    //Metodo para comparar matriculas iguales.
+    private static boolean comprobarMatricula(String matricula) {
+        for (Coche c : listCoches) {
+            if (c.getMatricula().equals(matricula)) {
+                System.out.println("MATRÍCULA YA EXISTENTE.");
+                return true;
 
-    // Método objetosAlIncio() ->  para añadir al fichero objetos.dat, objetos tipo Coche antes de compilar el programa.
-    public static void objetosAlIncio(Coche coche){
-        ObjectOutputStream objectOutputStream = null;
-        try {
-            File file = new File("src/main/java/coches.dat");
-            objectOutputStream = new ObjectOutputStream(new FileOutputStream(file));
-            objectOutputStream.writeObject(coche);
-
-        } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        } finally {
-            try {
-                objectOutputStream.close();
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
             }
         }
+
+        return false;
+
     }
+
+    // Método para comprobar id iguales.
+    private static boolean comprobarId(int id){
+        for (Coche c : listCoches) {
+            if (c.getId() == id) {
+                System.out.println("ID YA EXISTENTE.");
+                return true;
+
+            }
+        }
+
+        return false;
+    }
+
+
 
 
 }
